@@ -1,0 +1,113 @@
+/* Custom Styles for MOODFLIX */
+
+:root {
+    --sidebar-bg: #1a1a2e;
+    --main-bg: #0f0f1a;
+    --card-bg: #16213e;
+    --text-light: #e6e6e6;
+    --primary-color: #e94560;
+    --secondary-color: #0f3460;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--sidebar-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #d13a54;
+}
+
+/* Card Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Loading Animation */
+.loading-spinner {
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Mood Cards Hover Effect */
+.mood-card {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.mood-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(233, 69, 96, 0.2);
+}
+
+/* Genre Badges */
+.badge-genre {
+    background: linear-gradient(135deg, var(--primary-color), #ff6b6b);
+    font-weight: 500;
+    padding: 0.5em 1em;
+    border-radius: 20px;
+}
+
+/* Rating Stars */
+.rating-stars {
+    color: #ffc107;
+    font-size: 1.2rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .movie-poster {
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    .display-1 {
+        font-size: 3rem;
+    }
+
+    .lead {
+        font-size: 1.1rem;
+    }
+}
+
+/* Gradient Text */
+.gradient-text {
+    background: linear-gradient(45deg, var(--primary-color), #ff6b6b);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: bold;
+}
