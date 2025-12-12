@@ -3,166 +3,252 @@
 @section('title', $movie['title'] . ' | MOODFLIX')
 
 @section('content')
-<div class="container py-4">
-    <!-- Back Button -->
-    <a href="{{ url()->previous() }}" class="btn btn-outline-light mb-4">
-        <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
-    </a>
-    
-    <div class="row">
-        <!-- Poster -->
-        <div class="col-md-4 mb-4">
-            <img src="{{ $tmdb->getImageUrl($movie['poster_path'], 'w500') }}" 
-                 class="movie-poster" 
-                 alt="{{ $movie['title'] }}"
-                 onerror="this.src='https://via.placeholder.com/500x750?text=No+Poster'">
+<div class="detail-container">
+    <div class="row g-5">
+        <!-- Poster Section -->
+        <div class="col-lg-4 col-md-5">
+            <div class="poster-wrapper">
+                <img src="{{ $tmdb->getImageUrl($movie['poster_path'], 'w500') }}" 
+                     class="movie-poster-detail" 
+                     alt="{{ $movie['title'] }}"
+                     onerror="this.src='https://via.placeholder.com/500x750?text=No+Poster'">
+            </div>
         </div>
         
-        <!-- Details -->
-        <div class="col-md-8">
-            <h1 class="display-5 fw-bold">{{ $movie['title'] }}</h1>
-            <h4 class="text-muted">{{ $movie['original_title'] ?? '' }}</h4>
+        <!-- Details Section -->
+        <div class="col-lg-8 col-md-7">
+            <!-- Title -->
+            <h1 class="display-4 fw-bold mb-1">{{ $movie['title'] }}</h1>
             
-            <div class="d-flex flex-wrap align-items-center gap-3 my-4">
-                <div class="rating-badge bg-warning text-dark p-2 rounded">
-                    <i class="bi bi-star-fill me-1"></i>
-                    <span class="fw-bold fs-5">{{ number_format($movie['vote_average'], 1) }}</span>
-                    <small class="text-muted">/10</small>
-                </div>
-                
-                <div class="text-muted">
-                    <i class="bi bi-calendar me-1"></i> {{ date('F d, Y', strtotime($movie['release_date'])) }}
-                </div>
-                
-                <div class="text-muted">
-                    <i class="bi bi-clock me-1"></i> {{ $movie['runtime'] ?? 'N/A' }} min
-                </div>
-                
-                @if($movie['spoken_languages'] ?? false)
-                    <div class="text-muted">
-                        <i class="bi bi-translate me-1"></i> 
-                        {{ collect($movie['spoken_languages'])->pluck('english_name')->first() }}
-                    </div>
+            <!-- Metadata: Year, Country, Duration, Rating -->
+            <div class="metadata-line mb-3">
+                <span class="metadata-item">{{ date('Y', strtotime($movie['release_date'])) }}</span>
+                <span class="metadata-separator">•</span>
+                @if($movie['production_countries'] ?? false)
+                    <span class="metadata-item">
+                        {{ collect($movie['production_countries'])->pluck('name')->first() }}
+                    </span>
+                    <span class="metadata-separator">•</span>
                 @endif
+                <span class="metadata-item">{{ $movie['runtime'] ?? 'N/A' }} min</span>
+                <span class="metadata-separator">•</span>
+                <span class="metadata-item">
+                    <i class="bi bi-star-fill text-warning"></i> {{ number_format($movie['vote_average'], 1) }}/10
+                </span>
             </div>
             
-            <!-- Genres -->
-            <div class="mb-4">
+            <!-- Genre Badges -->
+            <div class="genre-badges mb-4">
                 @foreach($movie['genres'] ?? [] as $genre)
-                    <span class="badge badge-genre px-3 py-2 me-2 mb-2">{{ $genre['name'] }}</span>
+                    <span class="genre-badge">{{ $genre['name'] }}</span>
                 @endforeach
             </div>
             
-            <!-- Overview -->
-            <div class="card bg-dark border-0 mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">Overview</h5>
-                    <p class="card-text">{{ $movie['overview'] }}</p>
+            <!-- Overview/Synopsis -->
+            @if($movie['overview'])
+                <div class="synopsis-section">
+                    <p class="synopsis-text">{{ $movie['overview'] }}</p>
                 </div>
-            </div>
+            @endif
             
-            <!-- Additional Info -->
-            <div class="row">
-                @if($movie['production_countries'] ?? false)
-                    <div class="col-md-6 mb-3">
-                        <div class="card bg-dark border-0">
-                            <div class="card-body">
-                                <h6><i class="bi bi-globe me-2"></i>Country</h6>
-                                <p class="mb-0">
-                                    {{ collect($movie['production_countries'])->pluck('name')->implode(', ') }}
-                                </p>
+            <!-- Additional Info Cards -->
+            <div class="additional-info mt-5">
+                <div class="info-grid">
+                    @if($movie['production_countries'] ?? false)
+                        <div class="info-card">
+                            <div class="info-label">Country</div>
+                            <div class="info-value">
+                                {{ collect($movie['production_countries'])->pluck('name')->implode(', ') }}
                             </div>
                         </div>
-                    </div>
-                @endif
-                
-                @if($movie['production_companies'] ?? false)
-                    <div class="col-md-6 mb-3">
-                        <div class="card bg-dark border-0">
-                            <div class="card-body">
-                                <h6><i class="bi bi-building me-2"></i>Production</h6>
-                                <p class="mb-0">
-                                    {{ collect($movie['production_companies'])->pluck('name')->take(3)->implode(', ') }}
-                                </p>
+                    @endif
+                    
+                    @if($movie['production_companies'] ?? false)
+                        <div class="info-card">
+                            <div class="info-label">Production</div>
+                            <div class="info-value">
+                                {{ collect($movie['production_companies'])->pluck('name')->take(2)->implode(', ') }}
                             </div>
                         </div>
-                    </div>
-                @endif
-                
-                @if($movie['budget'] ?? false)
-                    <div class="col-md-6 mb-3">
-                        <div class="card bg-dark border-0">
-                            <div class="card-body">
-                                <h6><i class="bi bi-cash-coin me-2"></i>Budget</h6>
-                                <p class="mb-0">${{ number_format($movie['budget']) }}</p>
-                            </div>
+                    @endif
+                    
+                    @if($movie['budget'] ?? false)
+                        <div class="info-card">
+                            <div class="info-label">Budget</div>
+                            <div class="info-value">${{ number_format($movie['budget']) }}</div>
                         </div>
-                    </div>
-                @endif
-                
-                @if($movie['revenue'] ?? false)
-                    <div class="col-md-6 mb-3">
-                        <div class="card bg-dark border-0">
-                            <div class="card-body">
-                                <h6><i class="bi bi-graph-up me-2"></i>Revenue</h6>
-                                <p class="mb-0">${{ number_format($movie['revenue']) }}</p>
-                            </div>
+                    @endif
+                    
+                    @if($movie['revenue'] ?? false)
+                        <div class="info-card">
+                            <div class="info-label">Revenue</div>
+                            <div class="info-value">${{ number_format($movie['revenue']) }}</div>
                         </div>
-                    </div>
-                @endif
+                    @endif
+                </div>
             </div>
             
             <!-- Tagline -->
             @if($movie['tagline'] ?? false)
-                <div class="alert alert-dark border-0 mt-3">
+                <div class="tagline-section mt-4">
                     <em>"{{ $movie['tagline'] }}"</em>
                 </div>
             @endif
-            
-            <!-- Mood AI Recommendation -->
-            <div class="mt-4">
-                <div class="card border-primary">
-                    <div class="card-header bg-primary border-0">
-                        <i class="bi bi-robot me-2"></i> Mood AI Suggestion
-                    </div>
-                    <div class="card-body">
-                        <p>Based on this movie's genres, you might be in the mood for:</p>
-                        <div class="d-flex flex-wrap gap-2">
-                            @php
-                                $genres = collect($movie['genres'] ?? [])->pluck('name')->toArray();
-                                $moodSuggestions = [];
-                                
-                                if (in_array('Comedy', $genres) || in_array('Family', $genres)) {
-                                    $moodSuggestions[] = 'happy';
-                                }
-                                if (in_array('Drama', $genres) || in_array('Romance', $genres)) {
-                                    $moodSuggestions[] = 'sad';
-                                }
-                                if (in_array('Action', $genres) || in_array('Adventure', $genres)) {
-                                    $moodSuggestions[] = 'excited';
-                                }
-                                if (in_array('Horror', $genres) || in_array('Thriller', $genres)) {
-                                    $moodSuggestions[] = 'fear';
-                                }
-                                
-                                $moodSuggestions = array_slice(array_unique($moodSuggestions), 0, 3);
-                            @endphp
-                            
-                            @foreach($moodSuggestions as $mood)
-                                <a href="{{ route('mood.ai') }}?mood={{ $mood }}" 
-                                   class="btn btn-outline-primary btn-sm">
-                                    {{ ucfirst($mood) }} Mood
-                                </a>
-                            @endforeach
-                            
-                            <a href="{{ route('mood.ai') }}" class="btn btn-primary btn-sm ms-auto">
-                                Try Mood AI <i class="bi bi-arrow-right ms-1"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
 @endsection
+
+<style>
+    .detail-container {
+        padding: 0;
+    }
+
+    /* Poster */
+    .poster-wrapper {
+        position: sticky;
+        top: 30px;
+    }
+
+    .movie-poster-detail {
+        width: 100%;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        transition: transform 0.3s ease;
+    }
+
+    .movie-poster-detail:hover {
+        transform: scale(1.02);
+    }
+
+    /* Title and Metadata */
+    h1 {
+        color: #1a1a1a;
+        line-height: 1.2;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .metadata-line {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+        color: #666;
+    }
+
+    .metadata-item {
+        color: #333;
+    }
+
+    .metadata-separator {
+        color: #999;
+        margin: 0 0.25rem;
+    }
+
+    /* Genre Badges */
+    .genre-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .genre-badge {
+        display: inline-block;
+        background-color: #f0f0f0;
+        color: #333;
+        padding: 0.5rem 1.25rem;
+        border-radius: 25px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        border: 1px solid #ddd;
+    }
+
+    /* Synopsis */
+    .synopsis-section {
+        margin-top: 2rem;
+    }
+
+    .synopsis-text {
+        color: #333;
+        line-height: 1.8;
+        font-size: 0.95rem;
+    }
+
+    /* Additional Info Grid */
+    .additional-info {
+        border-top: 1px solid #e0e0e0;
+        padding-top: 2rem;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .info-card {
+        border: 1px solid #e0e0e0;
+        padding: 1rem;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+    }
+
+    .info-label {
+        font-size: 0.75rem;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.5rem;
+    }
+
+    .info-value {
+        color: #1a1a1a;
+        font-weight: 500;
+    }
+
+    /* Tagline */
+    .tagline-section {
+        color: #555;
+        font-style: italic;
+        padding: 1.5rem;
+        background-color: #f5f5f5;
+        border-left: 3px solid #e94560;
+        border-radius: 4px;
+    }
+
+    .btn-primary {
+        background-color: #e94560;
+        border-color: #e94560;
+    }
+
+    .btn-primary:hover {
+        background-color: #d13a54;
+        border-color: #d13a54;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .poster-wrapper {
+            position: static;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+        }
+
+        .metadata-line {
+            font-size: 0.85rem;
+        }
+
+        .genre-badge {
+            padding: 0.4rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        .info-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>

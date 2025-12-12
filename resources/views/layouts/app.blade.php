@@ -17,8 +17,8 @@
         }
         
         body {
-            background-color: var(--main-bg);
-            color: var(--text-light);
+            background-color: #ffffff;
+            color: #1a1a1a;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
@@ -31,8 +31,10 @@
         }
         
         .main-content {
-            margin-left: 250px;
-            padding: 20px;
+            margin-left: 280px;
+            padding: 30px 40px;
+            background-color: #ffffff;
+            color: #1a1a1a;
         }
         
         .card {
@@ -49,6 +51,10 @@
         .card-img-top {
             height: 300px;
             object-fit: cover;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            color: #1a1a1a;
         }
         
         .badge-genre {
@@ -99,26 +105,25 @@
                 width: 100%;
                 position: relative;
                 min-height: auto;
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             }
             
             .main-content {
                 margin-left: 0;
+                padding: 20px 15px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            @include('layouts.sidebar')
-            
-            <!-- Main Content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                @yield('content')
-            </main>
-        </div>
-    </div>
+    <!-- Sidebar -->
+    @include('layouts.sidebar')
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        @yield('content')
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
