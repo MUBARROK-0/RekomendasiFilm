@@ -1,8 +1,8 @@
 <aside class="sidebar">
     <div class="position-sticky pt-4 px-3">
         <!-- Logo -->
-        <div class="mb-5">
-            <h2 class="fw-bold text-light" style="font-size: 1.3rem; letter-spacing: 2px;">MOODFLIX</h2>
+        <div class="mb-5 sidebar-logo">
+            <h2 class="fw-bold sidebar-logo-text">MOODFLIX</h2>
         </div>
         
         <!-- Navigation -->
@@ -31,14 +31,27 @@
     }
 
     .sidebar .nav-link {
-        color: #b0b0b0 !important;
+        color: #ffffff !important; /* show nav text and icons as white */
         font-weight: 500;
         transition: all 0.3s ease;
     }
 
+    /* Center the logo at the top of the sidebar */
+    .sidebar .sidebar-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 0;
+    }
+    .sidebar .sidebar-logo-text {
+        font-size: 1.8rem; /* make the logo text larger */
+        color: #ffffff;
+        letter-spacing: 2px;
+        margin: 0;
+    }
     .sidebar .nav-link:hover {
         color: #ffffff !important;
-        background-color: rgba(233, 69, 96, 0.1);
+        background-color: rgba(233, 69, 96, 0.08);
         padding-left: 1.5rem;
     }
 
@@ -47,5 +60,10 @@
         background-color: rgba(233, 69, 96, 0.15);
         border-left: 3px solid #e94560;
         padding-left: 0.75rem;
+    }
+
+    /* Ensure icons inherit the white color */
+    .sidebar .nav-link i {
+        color: #ffffff !important;
     }
 </style>

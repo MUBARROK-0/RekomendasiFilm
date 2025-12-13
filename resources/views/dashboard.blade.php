@@ -1,32 +1,28 @@
 @extends('layouts.app')
 
 @section('content')
-<!-- Header Section -->
-<div class="mb-5">
-    <h1 class="display-5 fw-bold mb-1">All Films</h1>
-</div>
-
 <!-- Search and Filter -->
 <div class="mb-4">
     <form action="{{ route('dashboard') }}" method="GET" id="filterForm">
-        <!-- Search Bar -->
-        <div class="mb-3">
-            <div class="input-group input-group-lg">
-                <span class="input-group-text bg-transparent border-secondary">
-                    <i class="bi bi-search text-muted"></i>
-                </span>
+        <!-- Search placed at top -->
+        <div class="mb-3 d-flex justify-content-start">
+            <div class="search-top">
                 <input type="text" 
-                       class="form-control search-box border-secondary" 
+                       class="form-control search-box" 
                        placeholder="Search" 
                        name="search" 
                        value="{{ $search ?? '' }}">
             </div>
         </div>
-        
-        <!-- Filter Dropdowns -->
-        <div class="row g-2">
-            <div class="col-md-3 col-6">
-                <select class="form-select filter-select" name="year">
+
+        <!-- All Films header with short filters on same row -->
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div>
+                <h1 class="fw-bold mb-0 all-films-title">All Films</h1>
+            </div>
+
+            <div class="d-flex gap-2 align-items-center filters-row">
+                <select class="form-select filter-select short" name="year" onchange="this.form.submit()">
                     <option value="">YEAR</option>
                     @for($y = date('Y'); $y >= 2000; $y--)
                         <option value="{{ $y }}" {{ ($filters['year'] ?? '') == $y ? 'selected' : '' }}>
@@ -34,29 +30,23 @@
                         </option>
                     @endfor
                 </select>
-            </div>
-            
-            <div class="col-md-3 col-6">
-                <select class="form-select filter-select" name="country">
+
+                <select class="form-select filter-select short" name="country" onchange="this.form.submit()">
                     <option value="">COUNTRY</option>
                     <option value="US" {{ ($filters['country'] ?? '') == 'US' ? 'selected' : '' }}>United States</option>
                     <option value="GB" {{ ($filters['country'] ?? '') == 'GB' ? 'selected' : '' }}>United Kingdom</option>
                     <option value="JP" {{ ($filters['country'] ?? '') == 'JP' ? 'selected' : '' }}>Japan</option>
                     <option value="KR" {{ ($filters['country'] ?? '') == 'KR' ? 'selected' : '' }}>South Korea</option>
                 </select>
-            </div>
-            
-            <div class="col-md-3 col-6">
-                <select class="form-select filter-select" name="rating">
+
+                <select class="form-select filter-select short" name="rating" onchange="this.form.submit()">
                     <option value="">RATING</option>
                     <option value="7" {{ ($filters['rating'] ?? '') == '7' ? 'selected' : '' }}>7+ Stars</option>
                     <option value="8" {{ ($filters['rating'] ?? '') == '8' ? 'selected' : '' }}>8+ Stars</option>
                     <option value="9" {{ ($filters['rating'] ?? '') == '9' ? 'selected' : '' }}>9+ Stars</option>
                 </select>
-            </div>
-            
-            <div class="col-md-3 col-6">
-                <select class="form-select filter-select" name="genre">
+
+                <select class="form-select filter-select short" name="genre" onchange="this.form.submit()">
                     <option value="">GENRES</option>
                     @foreach($genres as $genre)
                         <option value="{{ $genre['id'] }}" {{ ($filters['genre'] ?? '') == $genre['id'] ? 'selected' : '' }}>
@@ -64,6 +54,8 @@
                         </option>
                     @endforeach
                 </select>
+
+
             </div>
         </div>
     </form>
@@ -86,7 +78,7 @@
                     </div>
                 </a>
                 <div class="mt-3">
-                    <h6 class="fw-bold text-light mb-1 text-truncate" title="{{ $movie['title'] }}">{{ $movie['title'] }}</h6>
+                    <h6 class="fw-bold text-dark mb-1 text-truncate" title="{{ $movie['title'] }}">{{ $movie['title'] }}</h6>
                     <div class="d-flex gap-1 flex-wrap">
                         @php
                             $genreNames = [];
@@ -149,22 +141,104 @@
 
 <style>
     .filter-select {
-        background-color: #f5f5f5;
-        border: 1px solid #ddd;
+        background-color: #fff;
+        border: 1px solid #1a1a1a;
         color: #1a1a1a;
-        padding: 0.5rem;
-        border-radius: 0.375rem;
+        padding: 0.45rem 0.6rem;
+        border-radius: 0.5rem;
         font-size: 0.875rem;
         font-weight: 500;
         letter-spacing: 0.05em;
     }
 
+    .filter-select.short {
+        min-width: 110px;
+        max-width: 140px;
+        padding: 0.32rem 0.6rem;
+        height: 40px;
+        border-radius: 0.5rem;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    @media (max-width: 991px) {
+        .filters-row {
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .search-top {
+            max-width: 100%;
+            width: 100%;
+        }
+
+        .search-top .search-box {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .filters-row .filter-select.short {
+            min-width: 110px;
+            max-width: 130px;
+        }
+
+        .filters-row {
+            gap: 0.5rem;
+        }
+    }
+
+    .search-top {
+        display: flex;
+        align-items: center;
+        border: 1px solid #1a1a1a;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        padding-left: 0;
+        width: 100%;
+        max-width: 500px; /* further extended width */
+    }
+
+    .search-top .search-box {
+        width: 100%;
+        max-width: none;
+        border: none !important;
+        padding: 0.6rem 1rem;
+        background-color: #ffffff;
+        color: #1a1a1a;
+        outline: none;
+    }
+
+    .search-top .search-box:focus {
+        background-color: #ffffff;
+        color: #1a1a1a;
+        box-shadow: 0 0 0 0.12rem rgba(26,26,26,0.06);
+    }
+
+    /* Smaller All Films title */
+    h1.all-films-title {
+        font-size: 1.5rem !important; /* ensure override */
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        margin: 0;
+        line-height: 1.15;
+    }
+
+    @media (max-width: 991px) {
+        .search-top .search-box {
+            max-width: 100%;
+        }
+
+        .all-films-title {
+            font-size: 0.95rem;
+        }
+    }
+
     .filter-select:hover,
     .filter-select:focus {
         background-color: #ffffff;
-        border-color: #e94560;
+        border-color: #1a1a1a;
         color: #1a1a1a;
-        box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.15);
+        box-shadow: 0 0 0 0.06rem rgba(26, 26, 26, 0.08);
     }
 
     .filter-select option {
