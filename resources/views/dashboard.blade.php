@@ -33,10 +33,9 @@
 
                 <select class="form-select filter-select short" name="country" onchange="this.form.submit()">
                     <option value="">COUNTRY</option>
-                    <option value="US" {{ ($filters['country'] ?? '') == 'US' ? 'selected' : '' }}>United States</option>
-                    <option value="GB" {{ ($filters['country'] ?? '') == 'GB' ? 'selected' : '' }}>United Kingdom</option>
-                    <option value="JP" {{ ($filters['country'] ?? '') == 'JP' ? 'selected' : '' }}>Japan</option>
-                    <option value="KR" {{ ($filters['country'] ?? '') == 'KR' ? 'selected' : '' }}>South Korea</option>
+                    @foreach($countries as $code => $name)
+                        <option value="{{ $code }}" {{ ($filters['country'] ?? '') == $code ? 'selected' : '' }}>{{ $name }}</option>
+                    @endforeach
                 </select>
 
                 <select class="form-select filter-select short" name="rating" onchange="this.form.submit()">
@@ -282,5 +281,28 @@
 
     .movie-card:hover .hover-overlay {
         opacity: 1 !important;
+    }
+
+    /* Remove blue focus/tap highlight and make active same as hover on dashboard buttons/links */
+    .filter-select:focus,
+    .search-top .search-box:focus,
+    .page-link:focus,
+    .page-link:active,
+    .movie-card a:focus,
+    .movie-card a:active,
+    button:focus,
+    button:active {
+        outline: none !important;
+        box-shadow: none !important;
+        -webkit-box-shadow: none !important;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .page-link:active,
+    .page-link:focus {
+        background-color: #1a1a1a !important;
+        color: #fff !important;
+        border-color: #1a1a1a !important;
+        box-shadow: 0 0 0 0.06rem rgba(26, 26, 26, 0.08);
     }
 </style>
