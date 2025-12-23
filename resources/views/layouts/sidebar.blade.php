@@ -11,9 +11,13 @@
                 <i class="bi bi-grid-3x2 me-3" style="font-size: 1.25rem;"></i>
                 <span>Dashboard</span>
             </a>
-            <a class="nav-link text-light d-flex align-items-center" href="{{ route('mood.ai') }}" style="padding: 0.75rem 1rem; border-radius: 0.375rem; transition: all 0.3s;">
+            <a class="nav-link text-light d-flex align-items-center {{ request()->routeIs('mood.ai') ? 'active' : '' }}" href="{{ route('mood.ai') }}" style="padding: 0.75rem 1rem; border-radius: 0.375rem; transition: all 0.3s;">
                 <i class="bi bi-robot me-3" style="font-size: 1.25rem;"></i>
                 <span>Mood AI</span>
+            </a>
+            <a class="nav-link text-light d-flex align-items-center {{ request()->routeIs('groq.ai') ? 'active' : '' }}" href="{{ route('groq.ai') }}" style="padding: 0.75rem 1rem; border-radius: 0.375rem; transition: all 0.3s;">
+                <i class="bi bi-lightning-charge me-3" style="font-size: 1.25rem;"></i>
+                <span>Groq AI</span>
             </a>
         </nav>
     </div>

@@ -40,6 +40,13 @@ return [
     'deepseek' => [
         'api_key' => env('DEEPSEEK_API_KEY'),
         'base_url' => env('DEEPSEEK_BASE_URL', 'https://api.deepseek.example'),
+        'debug' => env('DEEPSEEK_DEBUG', false),
+    ],
+
+    'groq' => [
+        'api_key' => env('GROQ_API_KEY'),
+        'base_url' => env('GROQ_BASE_URL', 'https://api.groq.com/openai/v1'),
+        'debug' => env('GROQ_DEBUG', false),
     ],
 
 ];

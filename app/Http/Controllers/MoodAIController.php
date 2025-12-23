@@ -8,12 +8,10 @@ use Illuminate\Http\Request;
 
 class MoodAIController extends Controller
 {
-    protected $tmdb;
     protected $deepseek;
 
-    public function __construct(TMDBService $tmdb, DeepSeekService $deepseek)
+    public function __construct(DeepSeekService $deepseek)
     {
-        $this->tmdb = $tmdb;
         $this->deepseek = $deepseek;
     }
 
@@ -31,8 +29,7 @@ class MoodAIController extends Controller
         ];
 
         return view('mood-ai', [
-            'moods' => $moods,
-            'tmdb' => $this->tmdb  // TAMBAHKAN INI
+            'moods' => $moods
         ]);
     }
 
@@ -43,13 +40,9 @@ class MoodAIController extends Controller
         ]);
 
         $mood = $request->input('mood');
-        $genres = $this->tmdb->mapMoodToGenre($mood);
-        
-        $movies = $this->tmdb->discoverMovies([
-            'with_genres' => implode('|', $genres),
-            'sort_by' => 'vote_average.desc',
-            'vote_count.gte' => 100
-        ]);
+
+        // Use DeepSeek to recommend a movie for the given mood (no TMDB involved)
+        $movie = $this->deepseek->recommendByMood($mood);
 
         $moodNames = [
             'happy' => 'Happy',
@@ -63,7 +56,7 @@ class MoodAIController extends Controller
         ];
 
         return view('mood-ai', [
-            'movies' => $movies['results'] ?? [],
+            'movies' => $movie ? [$movie] : [],
             'selectedMood' => $mood,
             'moodName' => $moodNames[$mood] ?? ucfirst($mood),
             'moods' => [
@@ -76,7 +69,7 @@ class MoodAIController extends Controller
                 'romantic' => ['name' => 'Romantic 💖', 'color' => 'danger'],
                 'mystery' => ['name' => 'Mystery 🕵️', 'color' => 'secondary'],
             ],
-            'tmdb' => $this->tmdb  // TAMBAHKAN INI
+            // no TMDB here by design
         ]);
     }
 
@@ -91,105 +84,17 @@ class MoodAIController extends Controller
 
         $text = $request->input('text');
 
+        // Ask DeepSeek to analyze and recommend directly (no TMDB involved)
         $analysis = $this->deepseek->analyzeText($text);
+        $movie = $this->deepseek->recommendByText($text);
 
-        // Collect a diverse candidate pool: search(text), search(keywords), discover(genres)
-        $candidatesById = [];
-        $tokens = array_filter(array_map('trim', preg_split('/\s+/', mb_strtolower($text))));
-        $matchedTokens = [];
+        // surface DeepSeek errors (if any) to the frontend for easier debugging
+        $analysis['deepseek_error'] = $this->deepseek->getLastError();
 
-        // direct search (up to 20)
-        $search = $this->tmdb->searchMovies($text, 1);
-        foreach (array_slice($search['results'] ?? [], 0, 20) as $r) {
-            if (!empty($r['id'])) $candidatesById[$r['id']] = $r;
-        }
+        // Build explanation text for user based on DeepSeek analysis
+        $matchedTokens = $analysis['keywords'] ?? [];
+        $analysis['matched_tokens'] = array_values(array_unique(array_filter($matchedTokens)));
 
-        // keyword-based search
-        $keywords = $analysis['keywords'] ?? [];
-        if (!empty($keywords)) {
-            foreach (array_slice($keywords, 0, 6) as $kw) {
-                $s = $this->tmdb->searchMovies($kw, 1);
-                foreach (array_slice($s['results'] ?? [], 0, 10) as $r) {
-                    if (!empty($r['id'])) $candidatesById[$r['id']] = $r;
-                }
-            }
-        }
-
-        // discover by genres
-        $genres = $analysis['genres'] ?? [];
-        if (empty($genres) && !empty($analysis['mood'])) {
-            $genres = $this->tmdb->mapMoodToGenre($analysis['mood']);
-        }
-        if (!empty($genres)) {
-            $discover = $this->tmdb->discoverMovies([
-                'with_genres' => is_array($genres) ? implode('|', $genres) : $genres,
-                'sort_by' => 'vote_count.desc',
-                'vote_count.gte' => 10,
-                'page' => 1
-            ]);
-            foreach (array_slice($discover['results'] ?? [], 0, 40) as $r) {
-                if (!empty($r['id'])) $candidatesById[$r['id']] = $r;
-            }
-        }
-
-        // Score candidates using token overlap, keyword presence, and popularity
-        $candidates = array_values($candidatesById);
-        $best = null;
-        $bestScore = -INF;
-
-        foreach ($candidates as $cand) {
-            if (!empty($cand['adult'])) continue;
-            $hay = mb_strtolower(($cand['title'] ?? '') . ' ' . ($cand['overview'] ?? ''));
-
-            $tokenMatch = 0;
-            $localMatched = [];
-            foreach ($tokens as $t) {
-                if ($t === '') continue;
-                if (mb_strpos($hay, $t) !== false) {
-                    $tokenMatch += 3;
-                    $localMatched[] = $t;
-                }
-                if (mb_strpos($hay, $t) === 0) $tokenMatch += 2;
-            }
-
-            $keywordBoost = 0;
-            foreach ($keywords as $k) {
-                if ($k && mb_strpos($hay, mb_strtolower($k)) !== false) $keywordBoost += 5;
-            }
-
-            $voteAverage = $cand['vote_average'] ?? 0;
-            $voteCount = $cand['vote_count'] ?? 0;
-            $voteScore = ($voteAverage / 10) * 3 + log10($voteCount + 1);
-
-            $score = $tokenMatch * 1.2 + $keywordBoost + $voteScore;
-            $score += rand(0, 100) / 10000; // tiny tie-breaker
-
-            if ($score > $bestScore) {
-                $bestScore = $score;
-                $best = $cand;
-                $matchedTokens = array_merge($matchedTokens, $localMatched);
-            }
-        }
-
-        $movie = $best;
-
-        // final fallback: popular non-adult
-        if (!$movie) {
-            $popular = $this->tmdb->getPopularMovies(1);
-            foreach ($popular['results'] ?? [] as $p) {
-                if (empty($p['adult'])) {
-                    $movie = $p;
-                    break;
-                }
-            }
-            $movie = $movie ?? ($popular['results'][0] ?? null);
-        }
-
-        // attach matched tokens info for explanation
-        $matchedTokens = array_values(array_unique(array_filter($matchedTokens)));
-        $analysis['matched_tokens'] = $matchedTokens;
-
-        // Build explanation text for user
         $explanationParts = [];
         $explanationParts[] = "Saya menganalisis permintaan Anda: \"{$text}\".";
 
@@ -201,22 +106,22 @@ class MoodAIController extends Controller
             $explanationParts[] = "Kata kunci yang relevan: " . implode(', ', array_slice($analysis['keywords'], 0, 6)) . ".";
         }
 
-        if (!empty($matchedTokens)) {
-            $explanationParts[] = "Saya mencocokkan kata-kata berikut dengan sinopsis/judul film: " . implode(', ', $matchedTokens) . ".";
+        if (!empty($analysis['matched_tokens'])) {
+            $explanationParts[] = "Kata yang cocok: " . implode(', ', $analysis['matched_tokens']) . ".";
         }
 
         if ($movie) {
-            $title = $movie['title'] ?? ($movie['name'] ?? 'Film');
-            $rating = isset($movie['vote_average']) ? number_format($movie['vote_average'], 1) : 'N/A';
-            $year = !empty($movie['release_date']) ? date('Y', strtotime($movie['release_date'])) : '';
+            $title = $movie['title'] ?? 'Film';
+            $rating = isset($movie['rating']) ? number_format($movie['rating'], 1) : 'N/A';
+            $year = $movie['release_year'] ?? 'N/A';
             $explanationParts[] = "Berdasarkan analisis tersebut, saya merekomendasikan satu film: \"{$title}\" ({$year}), rating {$rating}.";
             if (!empty($movie['overview'])) {
                 $overview = strlen($movie['overview']) > 300 ? substr($movie['overview'], 0, 300) . '...' : $movie['overview'];
                 $explanationParts[] = "Sinopsis singkat: {$overview}";
             }
-            $explanationParts[] = "Alasan: kecocokan kata kunci dan peringkat yang baik.";
+            $explanationParts[] = "Alasan: berdasarkan rekomendasi DeepSeek.";
         } else {
-            $explanationParts[] = "Maaf, saya tidak menemukan rekomendasi yang pas. Saya menampilkan film populer sebagai cadangan.";
+            $explanationParts[] = "Maaf, saya tidak menemukan rekomendasi yang pas dari DeepSeek.";
         }
 
         $analysis['explanation'] = implode(' ', $explanationParts);

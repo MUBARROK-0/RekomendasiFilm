@@ -92,7 +92,12 @@
                                 <div class="card h-100">
                                     <div class="row g-0">
                                         <div class="col-md-4">
-                                            <img src="{{ $tmdb->getImageUrl($movie['poster_path'], 'w300') }}" 
+                                            @php
+                                                $poster = $movie['poster_url'] ?? $movie['poster'] ?? ($movie['poster_path'] ?? null);
+                                                $year = $movie['release_year'] ?? ($movie['release_date'] ?? null);
+                                                $rating = $movie['rating'] ?? ($movie['vote_average'] ?? null);
+                                            @endphp
+                                            <img src="{{ $poster ?? 'https://via.placeholder.com/300x450?text=No+Poster' }}" 
                                                  class="img-fluid rounded-start h-100" 
                                                  alt="{{ $movie['title'] }}"
                                                  style="object-fit: cover;"
@@ -103,17 +108,19 @@
                                                 <h5 class="card-title">{{ $movie['title'] }}</h5>
                                                 <div class="mb-2">
                                                     <span class="badge bg-warning text-dark">
-                                                        <i class="bi bi-star-fill me-1"></i> {{ number_format($movie['vote_average'], 1) }}
+                                                        <i class="bi bi-star-fill me-1"></i> {{ isset($rating) ? number_format($rating, 1) : 'N/A' }}
                                                     </span>
-                                                    <span class="text-muted ms-2">{{ date('Y', strtotime($movie['release_date'])) }}</span>
+                                                    <span class="text-muted ms-2">{{ $year ? (is_numeric($year) ? $year : date('Y', strtotime($year))) : '' }}</span>
                                                 </div>
                                                 <p class="card-text small text-muted">
-                                                    {{ Str::limit($movie['overview'], 120) }}
+                                                    {{ Str::limit($movie['overview'] ?? '', 120) }}
                                                 </p>
-                                                <a href="{{ route('film.detail', $movie['id']) }}" 
-                                                   class="btn btn-sm btn-outline-primary">
-                                                    View Details
-                                                </a>
+                                                @if(!empty($movie['detail_url']))
+                                                    <a href="{{ $movie['detail_url'] }}" target="_blank"
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        View Details
+                                                    </a>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
@@ -158,8 +165,6 @@
         const analyzeResult = document.getElementById('analyzeResult');
         const analyzeCard = document.getElementById('analyzeCard');
 
-        const tmdbImageBase = '{{ config("services.tmdb.image_url") }}';
-
         analyzeBtn.addEventListener('click', function (e) {
             e.preventDefault();
             const text = analyzeText.value.trim();
@@ -173,11 +178,11 @@
             analyzeStatus.textContent = 'Menganalisis...';
             analyzeBtn.disabled = true;
 
-            fetch('{{ route('mood.analyze') }}', {
+            fetch("{{ route('mood.analyze') }}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({ text })
@@ -195,17 +200,28 @@
 
                 if (!data.movie) {
                     analyzeResult.style.display = 'block';
-                    analyzeCard.innerHTML = `<div class="alert alert-warning">Tidak ada rekomendasi ditemukan.</div>`;
+
+                    // Show DeepSeek error if available
+                    if (data.analysis && data.analysis.deepseek_error) {
+                        analyzeCard.innerHTML = `<div class="alert alert-warning">DeepSeek tidak dapat dihubungi: ${data.analysis.deepseek_error}</div>`;
+                    } else {
+                        analyzeCard.innerHTML = `<div class="alert alert-warning">Tidak ada rekomendasi ditemukan.</div>`;
+                    }
+
                     return;
                 }
 
                 const m = data.movie;
-                const posterUrl = m.poster_path ? `${tmdbImageBase}/w300${m.poster_path}` : 'https://via.placeholder.com/300x450?text=No+Poster';
+                const posterUrl = m.poster_url || m.poster || m.poster_path || 'https://via.placeholder.com/300x450?text=No+Poster';
 
                 analyzeResult.style.display = 'block';
                 const explanation = data.analysis && data.analysis.explanation ? data.analysis.explanation : '';
-                const releaseYear = m.release_date ? new Date(m.release_date).getFullYear() : 'N/A';
-                const rating = m.vote_average ? Number(m.vote_average).toFixed(1) : 'N/A';
+                const releaseYear = m.release_year || (m.release_date ? new Date(m.release_date).getFullYear() : 'N/A');
+                const rating = m.rating ? Number(m.rating).toFixed(1) : 'N/A';
+
+                // Build details button only if a detail_url is present
+                const detailsButton = m.detail_url ? `<a href="${m.detail_url}" target="_blank" class="btn btn-primary">View Details</a>` : '';
+
                 analyzeCard.innerHTML = `
                     <div class="recommendation-header mb-4">
                         <p class="explanation-text">${explanation}</p>
@@ -226,7 +242,7 @@
                                 </div>
                                 <p class="recommendation-overview mt-4">${m.overview ? m.overview : 'No overview available'}</p>
                                 <div class="mt-4">
-                                    <a href="${'{{ route('film.detail', ['id' => 'MOVIE_ID']) }}'.replace('MOVIE_ID', m.id)}" class="btn btn-primary">View Details</a>
+                                    ${detailsButton}
                                 </div>
                             </div>
                         </div>
