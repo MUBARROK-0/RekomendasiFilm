@@ -6,12 +6,13 @@
 <div class="mood-ai-container">
     <div class="hero-section">
         <div class="hero-content">
-            <h2 class="subtitle">GROQ AI RECOMMENDER</h2>
-            <h1 class="main-title">Tell me your mood — I'll recommend one film</h1>
-            <p class="lead text-muted mb-4">Describe briefly how you're feeling or what kind of movie you'd like—tone, pacing, or keywords are fine.</p>
+            <h1 class="main-title">What do you feel like watching today?</h1>
+            <p class="lead text-muted mb-4">Enter your mood and movie preferences — let AI pick the best film for you.</p>
 
             <div class="search-container">
-                <input type="text" id="groqText" class="search-input" placeholder="e.g. "A warm romantic comedy, cozy and funny"">
+                <div class="search-top">
+                    <input type="text" id="groqText" class="search-box" placeholder="A warm romantic comedy, cozy and funny">
+                </div>
                 <button id="groqBtn" class="search-button">Recommend</button>
             </div>
 
@@ -28,23 +29,7 @@
         </div>
     </div>
 
-    <div id="groqMoodSection" class="mood-cards-section">
-        <div class="container">
-            <h3 class="text-center mb-4">Or choose a mood</h3>
-            <div class="row g-4">
-                @foreach($moods as $key => $mood)
-                    <div class="col-md-4 col-sm-6">
-                        <div class="card mood-card border-{{ $mood['color'] }} text-center h-100"
-                             onclick="chooseMood('{{ $key }}')" style="cursor:pointer;">
-                            <div class="card-body py-4">
-                                <h4 class="card-title">{{ $mood['name'] }}</h4>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    </div>
+    <!-- Mood selector removed per UI update -->
 </div>
 
 <script>
@@ -104,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <h3>${m.title}</h3>
                             <div class="mb-2"><strong>Year:</strong> ${m.release_year || 'N/A'} • <strong>Rating:</strong> ${m.rating || 'N/A'}</div>
                             <p>${m.overview || ''}</p>
-                            ${m.detail_url ? `<p><a href="${m.detail_url}" target="_blank" class="btn btn-primary">View Details</a></p>` : ''}
+                            ${m.detail_local_url ? `<p><a href="${m.detail_local_url}" class="btn btn-primary">View Details</a></p>` : (m.detail_url ? `<p><a href="${m.detail_url}" target="_blank" class="btn btn-primary">View Details</a></p>` : '')}
                             ${m.reason ? `<p class="text-muted"><em>${m.reason}</em></p>` : ''}
                         </div>
                     </div>
@@ -124,11 +109,6 @@ document.addEventListener('DOMContentLoaded', function () {
         groqCard.innerHTML = '';
     });
 });
-
-function chooseMood(mood) {
-    document.getElementById('groqText').value = mood;
-    document.getElementById('groqBtn').click();
-}
 </script>
 
 <style>
@@ -173,24 +153,32 @@ function chooseMood(mood) {
     align-items: center;
 }
 
-.search-input {
-    flex: 1 1 420px;
-    min-width: 280px;
+.search-container .search-top {
+    display: flex;
+    align-items: center;
+    border: 1px solid #1a1a1a;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    padding-left: 0;
+    width: 100%;
     max-width: 720px;
-    padding: 0.95rem 1.25rem;
-    border-radius: 999px;
-    border: 1px solid #e6e6e6;
-    background: #fff;
-    color: #111;
-    box-shadow: 0 6px 20px rgba(10,10,10,0.04);
-    transition: box-shadow 0.18s ease, transform 0.12s ease;
+    background-color: #ffffff;
 }
 
-.search-input:focus {
+.search-container .search-top .search-box {
+    width: 100%;
+    border: none !important;
+    padding: 0.85rem 1.25rem;
+    background-color: #ffffff;
+    color: #1a1a1a;
     outline: none;
-    box-shadow: 0 10px 30px rgba(26, 69, 96, 0.06);
-    border-color: rgba(233, 69, 96, 0.12);
-    transform: translateY(-1px);
+    font-size: 1rem;
+}
+
+.search-container .search-top .search-box:focus {
+    background-color: #ffffff;
+    color: #1a1a1a;
+    box-shadow: 0 0 0 0.12rem rgba(26,26,26,0.06);
 }
 
 .search-button {

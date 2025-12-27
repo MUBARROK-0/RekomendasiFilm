@@ -1,10 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'Mood AI | MOODFLIX')
+@section('title', 'Removed')
 
 @section('content')
-<div class="mood-ai-container">
-    <!-- Main Hero Section -->
+<div class="container py-5 text-center">
+    <h3 class="mb-3">Halaman Mood AI telah dihapus</h3>
+    <p class="text-muted mb-4">Fitur Mood AI sudah dihapus. Anda dapat menggunakan fitur Groq AI untuk rekomendasi film berbasis mood.</p>
+    <a href="{{ route('groq.ai') }}" class="btn btn-primary">Lanjut ke Groq AI</a>
+</div>
+@endsection
     <div class="hero-section">
         <div class="hero-content">
             <h2 class="subtitle">STOP SEARCHING</h2>
